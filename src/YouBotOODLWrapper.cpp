@@ -56,7 +56,7 @@ node(n)
 
     youBotConfiguration.hasBase = false;
     youBotConfiguration.hasArms = false;
-    areBaseMotorsSwitchedOn = false;	
+    areBaseMotorsSwitchedOn = false;
     areArmMotorsSwitchedOn = false;
 
     youBotChildFrameID = "base_link"; //holds true for both: base and arm
@@ -163,8 +163,6 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
         return;
     }
 
-    if(youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->hasGripper())
-    {
         try
         {
             youbot::GripperBarName barName;
@@ -181,16 +179,14 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
             ROS_INFO("Joint %i for gripper of arm %s has name: %s", 2, youBotConfiguration.youBotArmConfigurations[armIndex].armID.c_str(), gripperBarName.c_str());
 
             youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->calibrateGripper();
+
+            youBotConfiguration.hasGripper = true;
         }
         catch (std::exception& e)
         {
             ROS_WARN_STREAM("Gripper on arm \"" << armName << "\" could not be initialized: " << e.what());
         }
-    }
-    else
-    {
-        ROS_WARN_STREAM("Gripper on arm \"" << armName << "\" not found or disabled in the config file!");
-    }
+
 
 
 
@@ -246,7 +242,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
 
         serviceName.str("");
         serviceName << youBotConfiguration.youBotArmConfigurations[armIndex].commandTopicName << "arm_controller/joint_trajectory_action"; // e.g. "arm_1/switchOnMotors"
-        
+
         youBotConfiguration.youBotArmConfigurations[armIndex].trajectoryActionServer = new Server(serviceName.str(),
                                                                                                   boost::bind(&YouBotOODLWrapper::executeActionServer, this, _1, armIndex),
                                                                                                   false);
@@ -565,7 +561,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
     }
 
   std::vector<youbot::JointTrajectory> jointTrajectories(youBotArmDoF);
-  
+
     // convert from the ROS trajectory representation to the controller's representation
     std::vector<std::vector< quantity<plane_angle> > > positions(youBotArmDoF);
     std::vector<std::vector< quantity<angular_velocity> > > velocities(youBotArmDoF);
@@ -581,7 +577,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
             youbotArmGoal.setRejected();
             return;
         }
-    
+
         for (int j = 0; j < youBotArmDoF; j++) {
             segment.positions = point.positions[j]*radian;
             segment.velocities = point.velocities[j]*radian_per_second;
@@ -594,8 +590,8 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
         jointTrajectories[j].start_time = boost::posix_time::microsec_clock::local_time(); //TODO is this correct to set the trajectory start time to now
     }
 
-  
-  
+
+
 
     // cancel the old goal
   /*
@@ -613,7 +609,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
     armActiveJointTrajectoryGoal = youbotArmGoal;
     armHasActiveJointTrajectoryGoal = true;
 
-  
+
  // myTrace->startTrace();
 
     // send the trajectory to the controller
@@ -846,7 +842,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
             armJointStateMessages[armIndex].header.stamp = currentTime;
 
             double numberOfArmjoints = 0;
-            if(youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->hasGripper())
+            if(youBotConfiguration.hasGripper)
                 numberOfArmjoints = youBotArmDoF + youBotNumberOfFingers;
             else
                 numberOfArmjoints = youBotArmDoF;
@@ -900,8 +896,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
              * than it is correct.
              */
 
-            if(youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->hasGripper() &&
-                        (ros::Duration(ros::Time::now() - last_gripper_readings_time_).toSec() > (1 / youBotDriverGripperReadingsCycleFrequencyInHz))) {
+            if((ros::Duration(ros::Time::now() - last_gripper_readings_time_).toSec() > (1 / youBotDriverGripperReadingsCycleFrequencyInHz))) {
                 try {
                     youbot::YouBotGripperBar& gripperBar1 = youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->getArmGripper().getGripperBar1();
                     youbot::YouBotGripperBar& gripperBar2 = youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->getArmGripper().getGripperBar2();
@@ -928,7 +923,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
             /*
             if (trajectoryActionServerEnable)
             {
-                // updating joint states in trajectory action 
+                // updating joint states in trajectory action
                 youBotConfiguration.youBotArmConfigurations[armIndex].jointTrajectoryAction->jointStateCallback(armJointStateMessages[armIndex]);
             }
 */
@@ -951,7 +946,7 @@ void YouBotOODLWrapper::computeOODLSensorReadings()
 
 void YouBotOODLWrapper::publishOODLSensorReadings()
 {
-      
+
     if (youBotConfiguration.hasBase)
     {
         youBotConfiguration.baseConfiguration.odometryBroadcaster.sendTransform(odometryTransform);
@@ -1064,7 +1059,7 @@ bool YouBotOODLWrapper::switchOnArmMotorsCallback(std_srvs::Empty::Request& requ
     ROS_ASSERT(0 <= armIndex && armIndex < static_cast<int> (youBotConfiguration.youBotArmConfigurations.size()));
 
     if (youBotConfiguration.hasArms && youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm != 0)
-    {   
+    {
       try
         {
             std::vector<youbot::JointSensedAngle> sensedJointAngleVector;
@@ -1074,7 +1069,7 @@ bool YouBotOODLWrapper::switchOnArmMotorsCallback(std_srvs::Empty::Request& requ
             for(unsigned int i = 0; i < sensedJointAngleVector.size(); i++){
               desiredJointAngle = sensedJointAngleVector[i].angle;
               desiredJointAngleVector.push_back(desiredJointAngle);
-            }        
+            }
             youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->setJointData(desiredJointAngleVector);
         }
         catch (std::exception& e)
@@ -1209,13 +1204,13 @@ void YouBotOODLWrapper::publishArmAndBaseDiagnostics(double publish_rate_in_secs
           diagnosticStatusMessage.level = diagnostic_msgs::DiagnosticStatus::ERROR;
           platformStateMessage.run_stop = true;
         }
-    } catch(std::exception &e) 
+    } catch(std::exception &e)
     {
         diagnosticStatusMessage.message = "EtherCAT connnection lost";
         diagnosticStatusMessage.level = diagnostic_msgs::DiagnosticStatus::ERROR;
         platformStateMessage.run_stop = true;
-    }    
-    diagnosticArrayMessage.status.push_back(diagnosticStatusMessage);        
+    }
+    diagnosticArrayMessage.status.push_back(diagnosticStatusMessage);
 
 
     // dashboard message

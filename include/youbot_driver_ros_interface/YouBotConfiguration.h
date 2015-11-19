@@ -138,8 +138,8 @@ public:
     /// Receives "brics_actuator/JointVelocities" for the arm joints
     ros::Subscriber armVelocityCommandSubscriber;
 
-	/// Implements a "control_msgs/FollowJointTrajectory" action
-	actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> *armJointTrajectoryAction;
+	  /// Implements a "control_msgs/FollowJointTrajectory" action
+  	actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> *armJointTrajectoryAction;
 
     /// Receives "brics_actuator/JointPositions" for the gripper
     ros::Subscriber gripperPositionCommandSubscriber;
@@ -188,16 +188,18 @@ public:
     ///Flag to indicate if youBot has one or more arms (set after successful initialization)
     bool hasArms;
 
+    bool hasGripper;
+
     /// A youbot system has one base
     YouBotBaseConfiguration baseConfiguration;
 
     /// A youbot system has one or more arms
     std::vector<YouBotArmConfiguration> youBotArmConfigurations;
     std::map<std::string, int> armNameToArmIndexMapping;
-    
+
     /// Publishes diagnostic messages
     ros::Publisher diagnosticArrayPublisher;
-    
+
     ros::Publisher dashboardMessagePublisher;
 };
 
