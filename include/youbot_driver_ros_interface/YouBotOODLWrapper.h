@@ -68,6 +68,9 @@
 #include <youbot_driver/youbot/JointTrajectoryController.hpp>
 #include <youbot_driver/youbot/DataTrace.hpp>
 
+#include <youbot_trajectory_action_server/joint_trajectory_action.h>
+#include <control_msgs/GripperCommandAction.h>
+
 //#include <control_msgs/FollowJointTrajectoryAction.h>
 //#include <actionlib/server/simple_action_server.h>
 
@@ -162,7 +165,7 @@ public:
      * @param armIndex Index that identifies the arm
      */
     void armJointTrajectoryCancelCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotArmGoal, unsigned int armIndex);
-    
+
     /**
      * @brief Callback that is executed when a position command for the gripper comes in.
      * @param youbotGripperCommand Message that contains the desired joint configuration.
@@ -170,47 +173,52 @@ public:
      */
     void gripperPositionsCommandCallback(const brics_actuator::JointPositionsConstPtr& youbotGripperCommand, int armIndex);
 
-    /**
-     * @brief Publishes all sensor measurements. Both for base and arm.
-     *
-     * Depending on what has been initialized before, either odometry and/or joint state valiues are published.
-     * computeOODLSensorReadings needs to be executed before.
-     */
-    void publishOODLSensorReadings();
-    
-    /**
-    * @brief Publishes status of base and arm as diagnostic and dashboard messages continuously
-    */
-    void publishArmAndBaseDiagnostics(double publish_rate_in_secs);
+    void gripperControllCancelCallback(actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle youbotGripperGoal, unsigned int armIndex);
 
-    /* Computation: */
+    void gripperControllGoalCallback(actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle youbotGripperGoal, unsigned int armIndex);
 
-    /**
-     * @brief Mapps OODL values to ROS messages
-     */
-    void computeOODLSensorReadings();
 
-    bool switchOffBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+        /**
+         * @brief Publishes all sensor measurements. Both for base and arm.
+         *
+         * Depending on what has been initialized before, either odometry and/or joint state valiues are published.
+         * computeOODLSensorReadings needs to be executed before.
+         */
+        void publishOODLSensorReadings();
 
-    bool switchOnBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+        /**
+        * @brief Publishes status of base and arm as diagnostic and dashboard messages continuously
+        */
+        void publishArmAndBaseDiagnostics(double publish_rate_in_secs);
 
-    bool switchOffArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+        /* Computation: */
 
-    bool switchOnArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+        /**
+         * @brief Mapps OODL values to ROS messages
+         */
+        void computeOODLSensorReadings();
 
-    bool calibrateArmCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+        bool switchOffBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
-    bool reconnectCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+        bool switchOnBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
-    /* Configuration: */
+        bool switchOffArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
 
-    /// Handle the aggregates all parts of a youBot system
-    YouBotConfiguration youBotConfiguration;
+        bool switchOnArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+
+        bool calibrateArmCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+
+        bool reconnectCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+
+        /* Configuration: */
+
+        /// Handle the aggregates all parts of a youBot system
+        YouBotConfiguration youBotConfiguration;
 
 private:
 
     YouBotOODLWrapper(); //forbid default constructor
-    
+
 
     /// Degrees of freedom for the youBot manipulator
     static const int youBotArmDoF = 5;
@@ -260,13 +268,13 @@ private:
     youbot::GripperSensedBarPosition gripperBar2Position;
 
     //void executeActionServer(const control_msgs::FollowJointTrajectoryGoalConstPtr& goal,  int armIndex);
-    
+
     //bool trajectoryActionServerEnable;
     //double trajectoryVelocityGain;
     //double trajectoryPositionGain;
     double youBotDriverCycleFrequencyInHz;
     double youBotDriverGripperReadingsCycleFrequencyInHz;
-        
+
     /// diagnostic msgs
     ros::Time lastDiagnosticPublishTime;
 

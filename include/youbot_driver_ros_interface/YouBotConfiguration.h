@@ -49,6 +49,7 @@
 #include <youbot_driver/youbot/YouBotManipulator.hpp>
 #include <actionlib/server/simple_action_server.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
+#include <control_msgs/GripperCommandAction.h>
 
 typedef actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> Server;
 
@@ -139,7 +140,11 @@ public:
     ros::Subscriber armVelocityCommandSubscriber;
 
 	  /// Implements a "control_msgs/FollowJointTrajectory" action
-  	actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> *armJointTrajectoryAction;
+	  actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> *armJointTrajectoryAction;
+
+
+    actionlib::ActionServer<control_msgs::GripperCommandAction> *gripperCommandAction;
+
 
     /// Receives "brics_actuator/JointPositions" for the gripper
     ros::Subscriber gripperPositionCommandSubscriber;

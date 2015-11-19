@@ -41,6 +41,7 @@
 #include "youbot_driver_ros_interface/joint_state_observer_oodl.h"
 
 #include <youbot_trajectory_action_server/joint_trajectory_action.h>
+#include <control_msgs/GripperCommandAction.h>
 #include <sstream>
 
 namespace youBot
@@ -168,8 +169,6 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
             youbot::GripperBarName barName;
             std::string gripperBarName;
 
-            youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->getArmGripper().getGripperBar1().getConfigurationParameter(barName);
-            barName.getParameter(gripperBarName);
             youBotConfiguration.youBotArmConfigurations[armIndex].gripperFingerNames[YouBotArmConfiguration::LEFT_FINGER_INDEX] = gripperBarName;
             ROS_INFO("Joint %i for gripper of arm %s has name: %s", 1, youBotConfiguration.youBotArmConfigurations[armIndex].armID.c_str(), gripperBarName.c_str());
 
@@ -216,6 +215,13 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
     topicName << youBotConfiguration.youBotArmConfigurations[armIndex].commandTopicName << "gripper_controller/position_command";
     youBotConfiguration.youBotArmConfigurations[armIndex].gripperPositionCommandSubscriber = node.subscribe<brics_actuator::JointPositions > (topicName.str(), 1000, boost::bind(&YouBotOODLWrapper::gripperPositionsCommandCallback, this, _1, armIndex));
     youBotConfiguration.youBotArmConfigurations[armIndex].lastGripperCommand = 0.0; //This is true if the gripper is calibrated.
+
+    topicName.str("");
+    topicName << youBotConfiguration.youBotArmConfigurations[armIndex].commandTopicName << "gripper_controller/gripper_action";
+    youBotConfiguration.youBotArmConfigurations[armIndex].gripperCommandAction = new actionlib::ActionServer<control_msgs::GripperCommandAction > (
+                    node, topicName.str(),
+                    boost::bind(&YouBotOODLWrapper::gripperControllGoalCallback, this, _1, armIndex),
+                    boost::bind(&YouBotOODLWrapper::gripperControllCancelCallback, this, _1, armIndex), false);
 
     /* setup services*/
     serviceName.str("");
@@ -649,6 +655,14 @@ void YouBotOODLWrapper::armJointTrajectoryCancelCallback(actionlib::ActionServer
         armHasActiveJointTrajectoryGoal = false;
     }
 }
+
+void YouBotOODLWrapper::gripperControllGoalCallback(actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle youbotArmGoal, unsigned int armIndex) {
+}
+
+void YouBotOODLWrapper::gripperControllCancelCallback(actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle youbotGripperGoal, unsigned int armIndex) {
+}
+
+
 
 void YouBotOODLWrapper::gripperPositionsCommandCallback(const brics_actuator::JointPositionsConstPtr& youbotGripperCommand, int armIndex)
 {
