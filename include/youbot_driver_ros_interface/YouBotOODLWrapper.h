@@ -69,7 +69,6 @@
 #include <youbot_driver/youbot/DataTrace.hpp>
 
 #include <youbot_trajectory_action_server/joint_trajectory_action.h>
-#include <control_msgs/GripperCommandAction.h>
 
 //#include <control_msgs/FollowJointTrajectoryAction.h>
 //#include <actionlib/server/simple_action_server.h>
@@ -173,47 +172,47 @@ public:
      */
     void gripperPositionsCommandCallback(const brics_actuator::JointPositionsConstPtr& youbotGripperCommand, int armIndex);
 
-    void gripperControllCancelCallback(actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle youbotGripperGoal, unsigned int armIndex);
+    void gripperControllCancelCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotGripperGoal, unsigned int armIndex);
 
-    void gripperControllGoalCallback(actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle youbotGripperGoal, unsigned int armIndex);
+    void gripperControllGoalCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotGripperGoal, unsigned int armIndex);
 
 
-        /**
-         * @brief Publishes all sensor measurements. Both for base and arm.
-         *
-         * Depending on what has been initialized before, either odometry and/or joint state valiues are published.
-         * computeOODLSensorReadings needs to be executed before.
-         */
-        void publishOODLSensorReadings();
+    /**
+     * @brief Publishes all sensor measurements. Both for base and arm.
+     *
+     * Depending on what has been initialized before, either odometry and/or joint state valiues are published.
+     * computeOODLSensorReadings needs to be executed before.
+     */
+    void publishOODLSensorReadings();
 
-        /**
-        * @brief Publishes status of base and arm as diagnostic and dashboard messages continuously
-        */
-        void publishArmAndBaseDiagnostics(double publish_rate_in_secs);
+    /**
+    * @brief Publishes status of base and arm as diagnostic and dashboard messages continuously
+    */
+    void publishArmAndBaseDiagnostics(double publish_rate_in_secs);
 
-        /* Computation: */
+    /* Computation: */
 
-        /**
-         * @brief Mapps OODL values to ROS messages
-         */
-        void computeOODLSensorReadings();
+    /**
+     * @brief Mapps OODL values to ROS messages
+     */
+    void computeOODLSensorReadings();
 
-        bool switchOffBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+    bool switchOffBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
-        bool switchOnBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+    bool switchOnBaseMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
-        bool switchOffArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+    bool switchOffArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
 
-        bool switchOnArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+    bool switchOnArmMotorsCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
 
-        bool calibrateArmCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
+    bool calibrateArmCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response, int armIndex);
 
-        bool reconnectCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+    bool reconnectCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 
-        /* Configuration: */
+    /* Configuration: */
 
-        /// Handle the aggregates all parts of a youBot system
-        YouBotConfiguration youBotConfiguration;
+    /// Handle the aggregates all parts of a youBot system
+    YouBotConfiguration youBotConfiguration;
 
 private:
 
@@ -263,6 +262,8 @@ private:
 
     /// Tell if a goal is currently active.
     bool armHasActiveJointTrajectoryGoal;
+
+    bool gripperHasActiveJointTrajectoryGoal;
 
     youbot::GripperSensedBarPosition gripperBar1Position;
     youbot::GripperSensedBarPosition gripperBar2Position;

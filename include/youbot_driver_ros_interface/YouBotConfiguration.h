@@ -143,7 +143,7 @@ public:
 	  actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> *armJointTrajectoryAction;
 
 
-    actionlib::ActionServer<control_msgs::GripperCommandAction> *gripperCommandAction;
+    actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> *gripperCommandAction;
 
 
     /// Receives "brics_actuator/JointPositions" for the gripper
