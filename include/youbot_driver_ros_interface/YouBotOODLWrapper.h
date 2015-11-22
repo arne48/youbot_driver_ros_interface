@@ -260,6 +260,8 @@ private:
     /// The joint trajectory goal that is currently active.
     actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle armActiveJointTrajectoryGoal;
 
+    actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle gripperActiveJointTrajectoryGoal;
+
     /// Tell if a goal is currently active.
     bool armHasActiveJointTrajectoryGoal;
 

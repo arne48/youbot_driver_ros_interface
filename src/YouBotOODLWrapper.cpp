@@ -660,11 +660,6 @@ void YouBotOODLWrapper::armJointTrajectoryCancelCallback(actionlib::ActionServer
 void YouBotOODLWrapper::gripperControllGoalCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotGripperGoal, unsigned int armIndex) {
   ROS_DEBUG("Goal for gripper%i received", armIndex + 1);
   ROS_ASSERT(0 <= armIndex && armIndex < static_cast<int>(youBotConfiguration.youBotArmConfigurations.size()));
-}
-
-void YouBotOODLWrapper::gripperControllCancelCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotGripperGoal, unsigned int armIndex) {
-  ROS_DEBUG("Cancel command for gripper%i received", armIndex + 1);
-  ROS_ASSERT(0 <= armIndex && armIndex < static_cast<int>(youBotConfiguration.youBotArmConfigurations.size()));
 
   if (youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm != 0) { // in case stop has been invoked
 
@@ -672,7 +667,7 @@ void YouBotOODLWrapper::gripperControllCancelCallback(actionlib::ActionServer<co
           ROS_WARN("youBot driver received an invalid gripper trajectory command.");
           return;
       }
-/*
+  /*
       map<string, double>::const_iterator gripperIterator;
       youbot::GripperBarPositionSetPoint leftGripperFingerPosition;
       youbot::GripperBarPositionSetPoint rightGripperFingerPosition;
@@ -725,9 +720,28 @@ void YouBotOODLWrapper::gripperControllCancelCallback(actionlib::ActionServer<co
       {
           return;
       }
-*/
+  */
   } else {
       ROS_ERROR("Arm%i is not correctly initialized!", armIndex + 1);
+  }
+
+}
+
+void YouBotOODLWrapper::gripperControllCancelCallback(actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle youbotGripperGoal, unsigned int armIndex) {
+  ROS_DEBUG("Cancel command for gripper%i received", armIndex + 1);
+  ROS_ASSERT(0 <= armIndex && armIndex < static_cast<int>(youBotConfiguration.youBotArmConfigurations.size()));
+
+  try {
+      youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->getArmGripper().stop();
+  } catch (std::exception& e) {
+      std::string errorMessage = e.what();
+      ROS_WARN("Cannot stop gripper: %s", errorMessage.c_str());
+  }
+
+  if (gripperActiveJointTrajectoryGoal == youbotGripperGoal) {
+      // Marks the current goal as canceled.
+      youbotGripperGoal.setCanceled();
+      gripperHasActiveJointTrajectoryGoal = false;
   }
 
 }
