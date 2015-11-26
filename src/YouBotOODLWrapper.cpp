@@ -561,7 +561,7 @@ void YouBotOODLWrapper::armJointTrajectoryGoalCallback(actionlib::ActionServer<c
         }
 
         if (!jointNameFound) {
-            ROS_ERROR("Trajectory is malformed! Joint %s is missing in the goal", youBotConfiguration.youBotArmConfigurations[armIndex].jointNames[i].c_str());
+            ROS_ERROR("Trajectory is malformed! Joint %s of arm is missing in the goal", youBotConfiguration.youBotArmConfigurations[armIndex].jointNames[i].c_str());
             youbotArmGoal.setRejected();
             return;
         }
@@ -667,7 +667,27 @@ void YouBotOODLWrapper::gripperControllGoalCallback(actionlib::ActionServer<cont
           ROS_WARN("youBot driver received an invalid gripper trajectory command.");
           return;
       }
-  /*
+
+      trajectory_msgs::JointTrajectory trajectory = youbotGripperGoal.getGoal()->trajectory;
+
+
+      // compare the joint names of the youBot configuration and joint names provided with the trajectory
+      for (unsigned int i = 0; i < youBotConfiguration.youBotArmConfigurations[armIndex].gripperFingerNames.size(); i++) {
+          bool jointNameFound = false;
+          for (unsigned int j = 0; j < trajectory.joint_names.size(); j++) {
+              if (youBotConfiguration.youBotArmConfigurations[armIndex].gripperFingerNames[i] == trajectory.joint_names[j]) {
+                  jointNameFound = true;
+                  break;
+              }
+          }
+
+          if (!jointNameFound) {
+              ROS_ERROR("Trajectory is malformed! Joint %s of gripper is missing in the goal", youBotConfiguration.youBotArmConfigurations[armIndex].jointNames[i].c_str());
+              youbotGripperGoal.setRejected();
+              return;
+          }
+      }
+
       map<string, double>::const_iterator gripperIterator;
       youbot::GripperBarPositionSetPoint leftGripperFingerPosition;
       youbot::GripperBarPositionSetPoint rightGripperFingerPosition;
@@ -675,13 +695,10 @@ void YouBotOODLWrapper::gripperControllGoalCallback(actionlib::ActionServer<cont
 
     //populate mapping between joint names and values
       std::map<string, double> jointNameToValueMapping;
-      for (int i = 0; i < static_cast<int>(youbotGripperCommand->positions.size()); ++i) {
-          if (unit == youbotGripperCommand->positions[i].unit) {
-              jointNameToValueMapping.insert(make_pair(youbotGripperCommand->positions[i].joint_uri, youbotGripperCommand->positions[i].value));
-          } else {
-              ROS_WARN("Unit incompatibility. Are you sure you want to command %s instead of %s ?", youbotGripperCommand->positions[i].unit.c_str(), unit.c_str());
-          }
+      for (int i = 0; i < static_cast<int>(trajectory.joint_names.size()); ++i) {
+              jointNameToValueMapping.insert(make_pair(trajectory.joint_names[i], trajectory.points[trajectory.points.size()-1].positions[i]));
       }
+
 
       try
       {
@@ -716,14 +733,21 @@ void YouBotOODLWrapper::gripperControllGoalCallback(actionlib::ActionServer<cont
           }
 
           youbot::EthercatMaster::getInstance().AutomaticSendOn(true); // ensure that all joint values will be send at the same time
+
+          // replace the old goal with the new one
+          youbotGripperGoal.setAccepted();
+          gripperActiveJointTrajectoryGoal = youbotGripperGoal;
+          gripperHasActiveJointTrajectoryGoal = true;
+
       } catch(std::exception &e)
       {
           return;
       }
-  */
+
   } else {
       ROS_ERROR("Arm%i is not correctly initialized!", armIndex + 1);
   }
+
 
 }
 
