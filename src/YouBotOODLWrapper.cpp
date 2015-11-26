@@ -168,6 +168,8 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
         youbot::GripperBarName barName;
         std::string gripperBarName;
 
+        youBotConfiguration.youBotArmConfigurations[armIndex].youBotArm->getArmGripper().getGripperBar1().getConfigurationParameter(barName);
+        barName.getParameter(gripperBarName);
         youBotConfiguration.youBotArmConfigurations[armIndex].gripperFingerNames[YouBotArmConfiguration::LEFT_FINGER_INDEX] = gripperBarName;
         ROS_INFO("Joint %i for gripper of arm %s has name: %s", 1, youBotConfiguration.youBotArmConfigurations[armIndex].armID.c_str(), gripperBarName.c_str());
 
@@ -216,7 +218,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
     youBotConfiguration.youBotArmConfigurations[armIndex].lastGripperCommand = 0.0; //This is true if the gripper is calibrated.
 
     topicName.str("");
-    topicName << youBotConfiguration.youBotArmConfigurations[armIndex].commandTopicName << "gripper_controller/gripper_action";
+    topicName << youBotConfiguration.youBotArmConfigurations[armIndex].commandTopicName << "gripper_controller/follow_joint_trajectory";
     youBotConfiguration.youBotArmConfigurations[armIndex].gripperCommandAction = new actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction > (
                     node, topicName.str(),
                     boost::bind(&YouBotOODLWrapper::gripperControllGoalCallback, this, _1, armIndex),
@@ -275,6 +277,7 @@ void YouBotOODLWrapper::initializeArm(std::string armName)
 
     // we can handle actionlib requests only after the complete initialization has been performed
     youBotConfiguration.youBotArmConfigurations[armIndex].armJointTrajectoryAction->start();
+    youBotConfiguration.youBotArmConfigurations[armIndex].gripperCommandAction->start();
 }
 
 /*
@@ -682,7 +685,7 @@ void YouBotOODLWrapper::gripperControllGoalCallback(actionlib::ActionServer<cont
           }
 
           if (!jointNameFound) {
-              ROS_ERROR("Trajectory is malformed! Joint %s of gripper is missing in the goal", youBotConfiguration.youBotArmConfigurations[armIndex].jointNames[i].c_str());
+              ROS_ERROR("Trajectory is malformed! Joint %s of gripper is missing in the goal", youBotConfiguration.youBotArmConfigurations[armIndex].gripperFingerNames[i].c_str());
               youbotGripperGoal.setRejected();
               return;
           }
